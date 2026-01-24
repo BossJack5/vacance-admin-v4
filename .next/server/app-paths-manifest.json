@@ -1,3 +1,4 @@
 {
-  "/admin/locations/page": "app/admin/locations/page.js"
+  "/admin/locations/page": "app/admin/locations/page.js",
+  "/admin/content/library/page": "app/admin/content/library/page.js"
 }
