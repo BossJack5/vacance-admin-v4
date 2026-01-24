@@ -1,4 +1,3 @@
-// [CTO Alex의 제언] 데이터 구조의 뼈대를 정의하여 런타임 에러를 방지합니다.
 export interface Country {
   id: string;
   nameKr: string;
@@ -6,7 +5,7 @@ export interface Country {
   isoCode: string;
   phoneCode: string;
   continent: string;
-  createdAt?: any;
+  isActive?: boolean;
 }
 
 export interface City {
@@ -15,17 +14,15 @@ export interface City {
   nameKr: string;
   nameEn: string;
   cityCode: string;
-  timezone: string;
-  lat: string;
-  lng: string;
-  createdAt?: any;
+  lat: number;   // 위도 추가
+  lng: number;   // 경도 추가
 }
 
-export interface Location {
+export interface Region {
   id: string;
   cityId: string;
   nameKr: string;
   nameEn: string;
   zipPrefix: string;
-  createdAt?: any;
+  tags?: string[]; // [수정] 있어도 되고 없어도 되는 선택 항목!
 }

@@ -1,21 +1,21 @@
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-
+// .env.local에 정의된 가장 정확한 설정값들을 참조합니다.
 const firebaseConfig = {
-  apiKey: "AIza...", // 사용자님의 실제 키
-  authDomain: "vacance-admin-v4.firebaseapp.com",
-  projectId: "vacance-admin-v4",
-  storageBucket: "vacance-admin-v4.appspot.com",
-  messagingSenderId: "...",
-  appId: "..."
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, // .firebasestorage.app 반영
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// 'app' 변수를 선언하고 초기화합니다.
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// 서버 사이드 렌더링(SSR) 대응을 위한 초기화 로직
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// [중요] app, auth, db를 모두 내보냅니다.
-export { app, auth, db };
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+export default app;
