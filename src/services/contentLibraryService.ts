@@ -30,14 +30,37 @@ export const TYPE_NAME_MAP: Record<ContentObjectType, string> = {
 
 export interface ContentObject {
   id: string;
-  type: ContentObjectType;
+  type: string;
   typeName: string;
-  target: string;
+  targetId: string;
+  targetName?: string;
   title: string;
   tagline: string;
-  preview: string;
+  description: string;
+  culturalFeatures: string;
   keywords: string[];
-  referenceCount: number;
+  historicalBackground?: string;
+  localTips?: string;
+  guideContent?: string;
+  countryId?: string;
+  // 도시 스토리 필드
+  culturalCharacteristics?: string;
+  // 교통 정보 필드
+  airportToCity?: string;
+  urbanTransport?: string;
+  personalMobility?: string;
+  intercityTravel?: string;
+  // 금융 가이드 필드
+  selectedCurrency?: string;
+  exchangeFee?: string;
+  atmTips?: string;
+  cardUsageTips?: string;
+  // 비상 연락처 필드
+  emergencyNumber?: string;
+  police?: string;
+  fire?: string;
+  medical?: string;
+  embassyInfo?: string;
   createdAt: any;
   updatedAt?: any;
 }

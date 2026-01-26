@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 // 별칭(@/)을 사용해 경로 에러 방지
 import { db } from '@/lib/firebase'; 
 import { 
@@ -25,9 +25,16 @@ import {
 } from "../../../../components/ui/select";
 import { 
   Library, Search, Plus, Edit, Trash2, Copy, TrendingUp, 
-  BookOpen, Shield, Link as LinkIcon, MapPin, FileText
+  BookOpen, Shield, Link as LinkIcon, MapPin, FileText, X
 } from 'lucide-react';
 import { contentLibraryAPI, ContentObject, ContentObjectType, TYPE_NAME_MAP } from '../../../../services/contentLibraryService';
+import StorytellingForm from '@/components/admin/content/StorytellingForm';
+import CountryStoryForm from '@/components/admin/content/CountryStoryForm';
+import CityStoryForm from '@/components/admin/content/CityStoryForm';
+import PracticalFinanceForm from '@/components/admin/content/PracticalFinanceForm';
+import PracticalTransportForm from '@/components/admin/content/PracticalTransportForm';
+import PracticalEmergencyForm from '@/components/admin/content/PracticalEmergencyForm';
+import toast from 'react-hot-toast';
 
 // 주인공(Default Export) 등장! 이 줄이 없으면 런타임 에러가 발생합니다.
 export default function ContentLibraryPage() {
@@ -37,16 +44,22 @@ export default function ContentLibraryPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeModalType, setActiveModalType] = useState<ContentObjectType | null>(null);
+  const formRef = useRef<{ handleSave: () => void }>(null);
 
   const [formData, setFormData] = useState<Omit<ContentObject, 'id' | 'createdAt'>>({
     type: 'country-story',
     typeName: '국가 스토리텔링',
-    target: '',
+    targetId: '',
     title: '',
     tagline: '',
-    preview: '',
+    description: '',
+    culturalFeatures: '',
     keywords: [],
-    referenceCount: 0
+    historicalBackground: '',
+    localTips: '',
+    guideContent: '',
+    countryId: '',
   });
 
   const loadData = async () => {
@@ -151,9 +164,23 @@ export default function ContentLibraryPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={() => { setEditingId(null); setIsModalOpen(true); }} className="bg-black text-white hover:bg-zinc-800">
-            <Plus className="w-4 h-4 mr-2" /> 새 객체 생성
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => { setActiveModalType('country-story'); setEditingId(null); setIsModalOpen(true); }} className="bg-black text-white hover:bg-zinc-800">
+              <Plus className="w-4 h-4 mr-2" /> 국가
+            </Button>
+            <Button onClick={() => { setActiveModalType('city-story'); setEditingId(null); setIsModalOpen(true); }} className="bg-black text-white hover:bg-zinc-800">
+              <Plus className="w-4 h-4 mr-2" /> 도시
+            </Button>
+            <Button onClick={() => { setActiveModalType('practical-finance'); setEditingId(null); setIsModalOpen(true); }} className="bg-black text-white hover:bg-zinc-800">
+              <Plus className="w-4 h-4 mr-2" /> 금융
+            </Button>
+            <Button onClick={() => { setActiveModalType('practical-transport'); setEditingId(null); setIsModalOpen(true); }} className="bg-black text-white hover:bg-zinc-800">
+              <Plus className="w-4 h-4 mr-2" /> 교통
+            </Button>
+            <Button onClick={() => { setActiveModalType('practical-emergency'); setEditingId(null); setIsModalOpen(true); }} className="bg-black text-white hover:bg-zinc-800">
+              <Plus className="w-4 h-4 mr-2" /> 긴급연락처
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -184,7 +211,7 @@ export default function ContentLibraryPage() {
                 </div>
               </div>
               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="icon" onClick={() => { setEditingId(obj.id); setFormData(obj); setIsModalOpen(true); }}><Edit className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => { setEditingId(obj.id); setActiveModalType(obj.type as ContentObjectType); setFormData({...obj}); setIsModalOpen(true); }}><Edit className="w-4 h-4" /></Button>
                 <Button variant="ghost" size="icon" onClick={() => contentLibraryAPI.duplicateContentLibraryObject(obj).then(loadData)}><Copy className="w-4 h-4" /></Button>
                 <Button variant="ghost" size="icon" onClick={() => { if(confirm('삭제하시겠습니까?')) contentLibraryAPI.deleteContentLibraryObject(obj.id).then(loadData); }}><Trash2 className="w-4 h-4" /></Button>
               </div>
@@ -193,51 +220,46 @@ export default function ContentLibraryPage() {
         ))}
       </div>
 
-      {/* 5. 모달 */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl bg-white p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="p-6 bg-zinc-50 border-b">
-            <DialogTitle className="text-xl font-bold">{editingId ? '객체 수정' : '새 객체 생성'}</DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[90vh] bg-white p-0 overflow-hidden border-none shadow-2xl flex flex-col">
+          <DialogHeader className="p-6 bg-zinc-50 border-b relative flex-shrink-0">
+          <DialogTitle className="text-xl font-bold">
+            {editingId ? 
+              `${activeModalType === 'country-story' ? '국가 스토리텔링' : 
+                activeModalType === 'city-story' ? '도시 스토리텔링' :
+                activeModalType === 'practical-finance' ? '금융 가이드' :
+                activeModalType === 'practical-transport' ? '교통 정보' :
+                activeModalType === 'practical-emergency' ? '비상 연락처' : '콘텐츠'} 수정` : 
+              `${activeModalType === 'country-story' ? '새 국가 스토리텔링' : 
+                activeModalType === 'city-story' ? '새 도시 스토리텔링' :
+                activeModalType === 'practical-finance' ? '새 금융 가이드' :
+                activeModalType === 'practical-transport' ? '새 교통 정보' :
+                activeModalType === 'practical-emergency' ? '새 비상 연락처' : '새 콘텐츠'} 생성`}
+          </DialogTitle>
+            <button onClick={() => { setIsModalOpen(false); setActiveModalType(null); setEditingId(null); }} className="absolute right-4 top-4 text-zinc-400 hover:text-zinc-600">
+              <X className="w-5 h-5" />
+            </button>
           </DialogHeader>
-          <div className="p-6 grid gap-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-zinc-400 uppercase">콘텐츠 타입</label>
-                <Select value={formData.type} onValueChange={(v: any) => setFormData({...formData, type: v})}>
-                  <SelectTrigger className="bg-zinc-50 border-none h-12"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(TYPE_NAME_MAP).map(([key, value]) => (
-                      <SelectItem key={key} value={key}>{value}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-zinc-400 uppercase">대상 국가/도시</label>
-                <Input value={formData.target} onChange={(e) => setFormData({...formData, target: e.target.value})} className="bg-zinc-50 border-none h-12" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-400 uppercase">제목</label>
-              <Input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="bg-zinc-50 border-none h-12 font-bold" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-400 uppercase">한 줄 설명</label>
-              <Input value={formData.tagline} onChange={(e) => setFormData({...formData, tagline: e.target.value})} className="bg-zinc-50 border-none h-12" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-400 uppercase">키워드 (쉼표 구분)</label>
-              <Input 
-                value={formData.keywords.join(', ')} 
-                onChange={(e) => setFormData({...formData, keywords: e.target.value.split(',').map(s => s.trim())})} 
-                placeholder="예: 예술, 역사, 미식" 
-                className="bg-zinc-50 border-none h-12" 
-              />
-            </div>
+          <div className="p-6 flex-1 overflow-y-auto">
+            {activeModalType === 'country-story' && (
+              <CountryStoryForm ref={formRef} initialData={editingId ? formData : undefined} onSuccess={() => { loadData(); toast.success('저장되었습니다.'); setIsModalOpen(false); setEditingId(null); setActiveModalType(null); setFormData({...formData, targetId: '', title: '', tagline: '', description: '', culturalFeatures: '', keywords: [], historicalBackground: '', localTips: '', guideContent: '', countryId: ''}); }} />
+            )}
+            {activeModalType === 'city-story' && (
+              <CityStoryForm ref={formRef} initialData={editingId ? formData : undefined} onSuccess={() => { loadData(); toast.success('저장되었습니다.'); setIsModalOpen(false); setEditingId(null); setActiveModalType(null); setFormData({...formData, targetId: '', title: '', tagline: '', description: '', culturalFeatures: '', keywords: [], historicalBackground: '', localTips: '', guideContent: '', countryId: ''}); }} />
+            )}
+            {activeModalType === 'practical-finance' && (
+              <PracticalFinanceForm ref={formRef} initialData={editingId ? formData : undefined} onSuccess={() => { loadData(); toast.success('저장되었습니다.'); setIsModalOpen(false); setEditingId(null); setActiveModalType(null); setFormData({...formData, targetId: '', title: '', tagline: '', description: '', culturalFeatures: '', keywords: [], historicalBackground: '', localTips: '', guideContent: '', countryId: ''}); }} />
+            )}
+            {activeModalType === 'practical-transport' && (
+              <PracticalTransportForm ref={formRef} initialData={editingId ? formData : undefined} onSuccess={() => { loadData(); toast.success('저장되었습니다.'); setIsModalOpen(false); setEditingId(null); setActiveModalType(null); setFormData({...formData, targetId: '', title: '', tagline: '', description: '', culturalFeatures: '', keywords: [], historicalBackground: '', localTips: '', guideContent: '', countryId: ''}); }} />
+            )}
+            {activeModalType === 'practical-emergency' && (
+              <PracticalEmergencyForm ref={formRef} initialData={editingId ? formData : undefined} onSuccess={() => { loadData(); toast.success('저장되었습니다.'); setIsModalOpen(false); setEditingId(null); setActiveModalType(null); setFormData({...formData, targetId: '', title: '', tagline: '', description: '', culturalFeatures: '', keywords: [], historicalBackground: '', localTips: '', guideContent: '', countryId: ''}); }} />
+            )}
           </div>
-          <DialogFooter className="p-6 bg-zinc-50 border-t flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setIsModalOpen(false)}>취소</Button>
-            <Button onClick={handleSave} className="bg-black text-white px-10 h-12">객체 저장</Button>
+          <DialogFooter className="p-6 bg-zinc-50 border-t flex justify-end gap-2 flex-shrink-0">
+            <Button variant="ghost" onClick={() => { setIsModalOpen(false); setActiveModalType(null); setEditingId(null); }}>취소</Button>
+            <Button onClick={() => formRef.current?.handleSave()} className="bg-black text-white">저장</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
