@@ -35,7 +35,7 @@ const MENU_DATA = [
     icon: FileText,
     subItems: [
       { id: 'library', name: '콘텐츠 라이브러리', path: '/admin/content/library', icon: Library },
-      { id: 'country_detail', name: '국가 상세', path: '/admin/content/country', icon: Flag },
+      { id: 'country_detail', name: '국가 상세', path: '/admin/content/countries', icon: Flag },
       { id: 'city_detail', name: '도시 상세', path: '/admin/content/city', icon: MapPin },
       { id: 'guidebook', name: '가이드북', path: '/admin/content/guide', icon: BookOpen },
       { id: 'landmarks', name: '명소/관광지', path: '/admin/content/landmarks', icon: MapPinned },

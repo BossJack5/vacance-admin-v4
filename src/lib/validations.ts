@@ -30,3 +30,49 @@ export const locationSchema = z.object({
   nameEn: z.string().min(1, "지역명(영문)은 필수입니다."),
   zipPrefix: z.string().optional(),
 });
+
+// HTML Sanitization 및 보안 유틸리티
+import DOMPurify from 'isomorphic-dompurify';
+
+/**
+ * HTML 콘텐츠를 정화(Sanitize)하여 XSS 공격을 방지합니다.
+ * @param html - 정화할 HTML 문자열
+ * @returns 정화된 안전한 HTML 문자열
+ */
+export function sanitizeHtml(html: string): string {
+  if (!html) return '';
+  
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'em', 'u', 's', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li', 'a', 'blockquote', 'pre', 'code',
+    ],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+    ALLOW_DATA_ATTR: false,
+  });
+}
+
+/**
+ * HTML에서 텍스트만 추출합니다.
+ * @param html - HTML 문자열
+ * @returns 텍스트만 추출된 문자열
+ */
+export function stripHtmlTags(html: string): string {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, '');
+}
+
+/**
+ * 파일 크기를 읽기 쉬운 형식으로 변환합니다.
+ * @param bytes - 바이트 크기
+ * @returns 포맷된 크기 문자열 (예: "1.5 MB")
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+}

@@ -191,10 +191,10 @@ export default function LocationsPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 text-gray-800">
           <div className="bg-white rounded-3xl w-[450px] p-8 shadow-2xl space-y-4">
             <div className="flex justify-between items-center"><h2 className="text-xl font-bold">국가 수정</h2><button onClick={() => setIsEditModalOpen(false)}><X/></button></div>
-            <input type="text" className="w-full border-2 rounded-xl p-3" value={editingCountry.nameKr} onChange={e => setEditingCountry({...editingCountry, nameKr: e.target.value})} />
-            <input type="text" className="w-full border-2 rounded-xl p-3" value={editingCountry.nameEn} onChange={e => setEditingCountry({...editingCountry, nameEn: e.target.value})} />
-            <div className="grid grid-cols-2 gap-3"><input type="text" className="border-2 rounded-xl p-3" value={editingCountry.isoCode} onChange={e => setEditingCountry({...editingCountry, isoCode: e.target.value})} /><input type="text" className="border-2 rounded-xl p-3" value={editingCountry.phoneCode} onChange={e => setEditingCountry({...editingCountry, phoneCode: e.target.value})} /></div>
-            <input type="text" className="w-full border-2 rounded-xl p-3" value={editingCountry.continent} onChange={e => setEditingCountry({...editingCountry, continent: e.target.value})} />
+            <input type="text" placeholder="한글명" className="w-full border-2 rounded-xl p-3" value={editingCountry.nameKr} onChange={e => setEditingCountry({...editingCountry, nameKr: e.target.value})} />
+            <input type="text" placeholder="영문명" className="w-full border-2 rounded-xl p-3" value={editingCountry.nameEn} onChange={e => setEditingCountry({...editingCountry, nameEn: e.target.value})} />
+            <div className="grid grid-cols-2 gap-3"><input type="text" placeholder="ISO" className="border-2 rounded-xl p-3" value={editingCountry.isoCode} onChange={e => setEditingCountry({...editingCountry, isoCode: e.target.value})} /><input type="text" placeholder="전화코드" className="border-2 rounded-xl p-3" value={editingCountry.phoneCode} onChange={e => setEditingCountry({...editingCountry, phoneCode: e.target.value})} /></div>
+            <input type="text" placeholder="대륙" className="w-full border-2 rounded-xl p-3" value={editingCountry.continent} onChange={e => setEditingCountry({...editingCountry, continent: e.target.value})} />
             <button onClick={async () => { await locationService.updateCountry(editingCountry.id, editingCountry); setIsEditModalOpen(false); loadData(); }} className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl">수정 완료</button>
           </div>
         </div>

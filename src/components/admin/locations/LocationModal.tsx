@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { X, Loader2, Save } from 'lucide-react';
-import { Location } from '@/types/location';
+import { Region } from '@/types/location';
 
 interface LocationModalProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface LocationModalProps {
   form: any;
   setForm: (form: any) => void;
   isSaving: boolean;
-  editData: Location | null;
+  editData: Region | null;
   selectedCityName: string;
 }
 

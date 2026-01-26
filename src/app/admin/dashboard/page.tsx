@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import * as locationService from '@/services/locationService';
+import { locationService } from '@/services/locationService';
 import { Globe, Building2, MapPin, RefreshCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function DashboardSummaryPage() {
-  const [stats, setStats] = useState({ countries: 0, cities: 0, locations: 0 });
+  const [stats, setStats] = useState({ totalCountries: 0, totalCities: 0, totalRegions: 0 });
   const [loading, setLoading] = useState(true);
 
   const fetchStats = async () => {
@@ -24,9 +24,9 @@ export default function DashboardSummaryPage() {
   useEffect(() => { fetchStats(); }, []);
 
   const statCards = [
-    { label: '국가', value: stats.countries, icon: Globe, color: 'text-blue-500', bg: 'bg-blue-50' },
-    { label: '도시', value: stats.cities, icon: Building2, color: 'text-green-500', bg: 'bg-green-50' },
-    { label: '지역', value: stats.locations, icon: MapPin, color: 'text-purple-500', bg: 'bg-purple-50' },
+    { label: '국가', value: stats.totalCountries, icon: Globe, color: 'text-blue-500', bg: 'bg-blue-50' },
+    { label: '도시', value: stats.totalCities, icon: Building2, color: 'text-green-500', bg: 'bg-green-50' },
+    { label: '지역', value: stats.totalRegions, icon: MapPin, color: 'text-purple-500', bg: 'bg-purple-50' },
   ];
 
   return (
@@ -53,7 +53,7 @@ export default function DashboardSummaryPage() {
               <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{s.label}</p>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-slate-800">
-                  {loading ? '...' : s.value.toLocaleString()}
+                  {loading ? '...' : s.value?.toLocaleString() ?? '0'}
                 </span>
                 <span className="text-[10px] text-slate-400 font-bold">개</span>
               </div>
