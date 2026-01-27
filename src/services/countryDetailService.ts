@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 
 export interface CountryDetail {
   id: string;
@@ -44,6 +44,17 @@ export interface CountryDetail {
     isEnabled?: boolean;
   }>;
   
+  // 실용 정보 (도시로 상속 가능)
+  practicalInfo?: {
+    visaInfo?: string;
+    timezone?: string;
+    mainLanguage?: string;
+    basicPhrases?: string;
+    voltage?: string;
+    plugType?: string;
+    currency?: string;
+  };
+  
   createdAt: any;
   updatedAt?: any;
 }
@@ -56,6 +67,16 @@ export const countryDetailService = {
     const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as CountryDetail[];
+  },
+
+  // 국가 상세 단일 조회
+  getCountryDetailById: async (id: string): Promise<CountryDetail | null> => {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as CountryDetail;
+    }
+    return null;
   },
 
   // 국가 상세 생성

@@ -15,6 +15,8 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import CountryStorytellingSelector from '@/components/admin/content/CountryStorytellingSelector';
 import CultureSpecialSection from '@/components/admin/content/CultureSpecialSection';
 import LibrarySearchModal from '@/components/admin/content/LibrarySearchModal';
+import StatsManager from '@/components/common/StatsManager';
+import TabbedInfoEditor, { TabConfig } from '@/components/common/TabbedInfoEditor';
 import { contentLibraryAPI } from '@/services/contentLibraryService';
 import toast from 'react-hot-toast';
 import {
@@ -180,7 +182,7 @@ export default function NewCountryDetailPage() {
   });
 
   // 통계 데이터 입력 핸들러
-  const handleStatsChange = (field: keyof typeof statsData, value: string) => {
+  const handleStatsChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
     setStatsData({ ...statsData, [field]: numValue >= 0 ? numValue : 0 });
   };
@@ -415,8 +417,9 @@ export default function NewCountryDetailPage() {
     }
   };
 
-  const tabConfig = {
-    geography: {
+  const countryTabs: TabConfig[] = [
+    {
+      key: 'geography',
       icon: Mountain,
       title: '지리/기후',
       titleEn: 'Geography & Climate',
@@ -424,7 +427,8 @@ export default function NewCountryDetailPage() {
       activeStyle: 'bg-green-500 text-white border-green-500',
       inactiveStyle: 'border-gray-300 text-gray-600 hover:border-green-300',
     },
-    politics: {
+    {
+      key: 'politics',
       icon: Scale,
       title: '정치',
       titleEn: 'Politics',
@@ -432,7 +436,8 @@ export default function NewCountryDetailPage() {
       activeStyle: 'bg-white text-blue-500 border-blue-500',
       inactiveStyle: 'border-gray-300 text-gray-600 hover:border-blue-300',
     },
-    economy: {
+    {
+      key: 'economy',
       icon: TrendingUp,
       title: '경제',
       titleEn: 'Economy',
@@ -440,7 +445,8 @@ export default function NewCountryDetailPage() {
       activeStyle: 'bg-white text-emerald-500 border-emerald-400',
       inactiveStyle: 'border-gray-300 text-gray-600 hover:border-emerald-300',
     },
-    society: {
+    {
+      key: 'society',
       icon: Users,
       title: '사회',
       titleEn: 'Society',
@@ -448,7 +454,7 @@ export default function NewCountryDetailPage() {
       activeStyle: 'bg-white text-purple-500 border-purple-400',
       inactiveStyle: 'border-gray-300 text-gray-600 hover:border-purple-300',
     },
-  };
+  ];
 
   useEffect(() => {
     loadCountries();
@@ -860,117 +866,20 @@ export default function NewCountryDetailPage() {
               </div>
 
               {/* 국가 기본 정보 섹션 */}
-              <div className="border-t-2 border-zinc-200 pt-6 mt-6">
-                {/* 섹션 헤더 */}
-                <div className="bg-[#334155] rounded-t-xl px-6 py-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <BookOpen className="w-6 h-6 text-white" />
-                    <div>
-                      <h3 className="text-lg font-bold text-white">1-1. 국가 기본 정보</h3>
-                      <p className="text-sm text-slate-300 mt-0.5">국가별 핵심 정보를 카테고리별로 관리합니다</p>
-                    </div>
-                  </div>
-                  <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30">
-                    <span className="text-xs font-semibold text-white">자동 상속됨</span>
-                  </div>
-                </div>
-
-                {/* 4단 탭 메뉴 */}
-                <div className="bg-white border-x-2 border-gray-200 px-6 py-4">
-                  <div className="grid grid-cols-4 gap-3">
-                    {(Object.keys(tabConfig) as TabType[]).map((tabKey) => {
-                      const config = tabConfig[tabKey];
-                      const Icon = config.icon;
-                      const isActive = activeTab === tabKey;
-                      return (
-                        <button
-                          key={tabKey}
-                          onClick={() => setActiveTab(tabKey)}
-                          className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 font-semibold transition-all ${
-                            isActive ? config.activeStyle : config.inactiveStyle
-                          }`}
-                        >
-                          <Icon className="w-5 h-5" />
-                          {config.title}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 에디터 영역 */}
-                <div className="bg-white border-2 border-t-0 border-gray-200 rounded-b-xl px-6 py-6">
-                  {(() => {
-                    const config = tabConfig[activeTab];
-                    const Icon = config.icon;
-                    return (
-                      <div>
-                        {/* 탭 헤더 */}
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <Icon className="w-6 h-6 text-zinc-700" />
-                            <h4 className="text-lg font-bold text-zinc-900">
-                              {config.title} <span className="text-sm text-gray-500 font-normal">({config.titleEn})</span>
-                            </h4>
-                          </div>
-                          {/* 자동 저장 상태 */}
-                          <div className="flex items-center gap-2 text-sm">
-                            {isSaving ? (
-                              <span className="text-yellow-600 flex items-center gap-1">
-                                <span className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse"></span>
-                                저장 중...
-                              </span>
-                            ) : lastSaved ? (
-                              <span className="text-green-600 flex items-center gap-1">
-                                <Check className="w-4 h-4" />
-                                {lastSaved.toLocaleTimeString()} 자동 저장됨
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-
-                        {/* 텍스트 입력 영역 */}
-                        <div className="mb-6">
-                          <textarea
-                            value={basicInfo[activeTab] || ''}
-                            onChange={(e) => setBasicInfo({ ...basicInfo, [activeTab]: e.target.value })}
-                            placeholder={config.placeholder}
-                            className="w-full min-h-[300px] px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white resize-y text-sm leading-relaxed"
-                          />
-                          <p className="text-xs text-gray-500 mt-2">
-                            일반 텍스트로 입력됩니다. 서식 없이 순수 텍스트만 저장됩니다.
-                          </p>
-                        </div>
-
-                        {/* 관련 이미지 업로더 */}
-                        <div className="mt-6">
-                          <h5 className="text-sm font-bold text-zinc-800 mb-3">🖼️ 관련 이미지 (최대 3장)</h5>
-                          
-                          <ImageUploader
-                            images={tabImages[activeTab]}
-                            maxImages={3}
-                            onImagesChange={(newImages) =>
-                              setTabImages({ ...tabImages, [activeTab]: newImages })
-                            }
-                            aspectRatio="aspect-video"
-                            placeholder="관련 이미지를 추가하세요"
-                            showUrlInput={true}
-                            id={`tab-image-input-${activeTab}`}
-                          />
-
-                          {/* 하단 안내 박스 */}
-                          <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-4 mt-4">
-                            <p className="text-sm text-blue-800">
-                              <span className="font-semibold">💡 아코디언 방식:</span> 각 탭(지리/기후, 정치, 경제, 사회)을 이동하면 해당 세부 내용과 이미지가 표시됩니다. 
-                              각 항목마다 이미지 3장과 대용량 텍스트 입력이 가능합니다.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
+              <TabbedInfoEditor
+                sectionNumber="1-1"
+                sectionTitle="국가 기본 정보"
+                sectionDescription="국가별 핵심 정보를 카테고리별로 관리합니다"
+                tabs={countryTabs}
+                basicInfo={basicInfo}
+                onBasicInfoChange={setBasicInfo}
+                tabImages={tabImages}
+                onTabImagesChange={setTabImages}
+                isSaving={isSaving}
+                lastSaved={lastSaved}
+                showInheritanceBadge={true}
+                accordionGuideText="각 탭(지리/기후, 정치, 경제, 사회)을 이동하면 해당 세부 내용과 이미지가 표시됩니다. 각 항목마다 이미지 3장과 대용량 텍스트 입력이 가능합니다."
+              />
 
               {/* 이미지 등록 섹션 */}
               <div className="border-t-2 border-zinc-200 pt-6 mt-6">
@@ -1106,98 +1015,18 @@ export default function NewCountryDetailPage() {
                   관리자가 직접 통계 수치를 입력하거나 수정할 수 있습니다
                 </p>
 
-                {/* 통계 입력 그리드 */}
-                <div className="grid grid-cols-5 gap-4">
-                  {/* 천 횟수 */}
-                  <div>
-                    <div className="flex flex-col items-center mb-3">
-                      <Heart className="w-8 h-8 text-purple-500 mb-2" />
-                      <label className="text-xs font-semibold text-zinc-700">
-                        천 횟수
-                      </label>
-                    </div>
-                    <Input
-                      type="number"
-                      value={statsData.favorites}
-                      onChange={(e) => handleStatsChange('favorites', e.target.value)}
-                      placeholder="0"
-                      className="text-center bg-white border-gray-200 focus:ring-purple-500"
-                      min="0"
-                    />
-                  </div>
-
-                  {/* 공유 수 */}
-                  <div>
-                    <div className="flex flex-col items-center mb-3">
-                      <Share2 className="w-8 h-8 text-purple-500 mb-2" />
-                      <label className="text-xs font-semibold text-zinc-700">
-                        공유 수
-                      </label>
-                    </div>
-                    <Input
-                      type="number"
-                      value={statsData.shares}
-                      onChange={(e) => handleStatsChange('shares', e.target.value)}
-                      placeholder="0"
-                      className="text-center bg-white border-gray-200 focus:ring-purple-500"
-                      min="0"
-                    />
-                  </div>
-
-                  {/* 저장 횟수 */}
-                  <div>
-                    <div className="flex flex-col items-center mb-3">
-                      <Bookmark className="w-8 h-8 text-purple-500 mb-2" />
-                      <label className="text-xs font-semibold text-zinc-700">
-                        저장 횟수
-                      </label>
-                    </div>
-                    <Input
-                      type="number"
-                      value={statsData.saves}
-                      onChange={(e) => handleStatsChange('saves', e.target.value)}
-                      placeholder="0"
-                      className="text-center bg-white border-gray-200 focus:ring-purple-500"
-                      min="0"
-                    />
-                  </div>
-
-                  {/* PDF 다운로드 수 */}
-                  <div>
-                    <div className="flex flex-col items-center mb-3">
-                      <FileDown className="w-8 h-8 text-purple-500 mb-2" />
-                      <label className="text-xs font-semibold text-zinc-700">
-                        PDF 다운로드 수
-                      </label>
-                    </div>
-                    <Input
-                      type="number"
-                      value={statsData.pdfDownloads}
-                      onChange={(e) => handleStatsChange('pdfDownloads', e.target.value)}
-                      placeholder="0"
-                      className="text-center bg-white border-gray-200 focus:ring-purple-500"
-                      min="0"
-                    />
-                  </div>
-
-                  {/* 조회 수 */}
-                  <div>
-                    <div className="flex flex-col items-center mb-3">
-                      <Eye className="w-8 h-8 text-purple-500 mb-2" />
-                      <label className="text-xs font-semibold text-zinc-700">
-                        조회 수
-                      </label>
-                    </div>
-                    <Input
-                      type="number"
-                      value={statsData.views}
-                      onChange={(e) => handleStatsChange('views', e.target.value)}
-                      placeholder="0"
-                      className="text-center bg-white border-gray-200 focus:ring-purple-500"
-                      min="0"
-                    />
-                  </div>
-                </div>
+                {/* 통계 입력 그리드 - StatsManager 컴포넌트 사용 */}
+                <StatsManager
+                  stats={statsData}
+                  onChange={handleStatsChange}
+                  fieldMapping={{
+                    likes: 'favorites',
+                    shares: 'shares',
+                    saves: 'saves',
+                    pdfDownloads: 'pdfDownloads',
+                    views: 'views',
+                  }}
+                />
 
                 {/* 하단 안내 박스 */}
                 <div className="bg-purple-100/50 border border-purple-200 rounded-lg p-4 mt-6">

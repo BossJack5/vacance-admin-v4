@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase';
 import { 
-  collection, getDocs, query, where, orderBy, 
+  collection, getDocs, getDoc, query, where, orderBy, 
   deleteDoc, doc, updateDoc, addDoc, serverTimestamp 
 } from 'firebase/firestore';
 import { Country, City, Region } from '@/types/location';
@@ -11,6 +11,16 @@ export const locationService = {
     const q = query(collection(db, 'countries'), orderBy('nameKr', 'asc'));
     const snap = await getDocs(q);
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Country[];
+  },
+
+  // 1-1. 특정 국가 가져오기
+  getCountryById: async (id: string) => {
+    const docRef = doc(db, 'countries', id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as Country;
+    }
+    return null;
   },
 
   // 2. 특정 국가의 도시 목록 가져오기
