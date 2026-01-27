@@ -108,5 +108,18 @@ export const contentLibraryAPI = {
     };
     const docRef = await addDoc(collection(db, COLLECTION_NAME), duplicatedData);
     return { id: docRef.id, ...duplicatedData };
+  },
+
+  // Fetch library storytelling objects for country storytelling selector
+  fetchLibraryStorytellingObjects: async () => {
+    const q = query(
+      collection(db, COLLECTION_NAME), 
+      orderBy('updatedAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    const objects = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(obj => obj.type === 'country-story') as ContentObject[];
+    return objects;
   }
 };

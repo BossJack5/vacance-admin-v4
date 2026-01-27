@@ -34,6 +34,16 @@ export interface CountryDetail {
   economyImages?: string[];
   societyImages?: string[];
   
+  // 국가 스토리텔링 라이브러리 참조
+  storytellingLibraryId?: string | null;
+  
+  // 국가 문화 스페셜
+  cultureSpecial?: Record<string, {
+    description: string;
+    images: string[];
+    isEnabled?: boolean;
+  }>;
+  
   createdAt: any;
   updatedAt?: any;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import toast from 'react-hot-toast';
 import 'react-quill/dist/quill.snow.css';
@@ -24,6 +24,25 @@ export default function RichTextEditor({
   minHeight = '300px',
 }: RichTextEditorProps) {
   const quillRef = useRef<any>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  // value가 undefined일 경우 빈 문자열로 처리
+  const safeValue = value ?? '';
+
+  // 컴포넌트 마운트 후 준비 상태 설정
+  useEffect(() => {
+    setMounted(true);
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      setIsReady(false);
+      setMounted(false);
+    };
+  }, []);
 
   // 이미지 핸들러 - base64 업로드 방지
   const imageHandler = () => {
@@ -36,7 +55,7 @@ export default function RichTextEditor({
     return false;
   };
 
-  const modules = {
+  const modules = useMemo(() => ({
     toolbar: {
       container: [
         [{ header: [1, 2, 3, false] }],
@@ -51,9 +70,9 @@ export default function RichTextEditor({
         image: imageHandler, // 커스텀 이미지 핸들러
       },
     },
-  };
+  }), []);
 
-  const formats = [
+  const formats = useMemo(() => [
     'header',
     'bold',
     'italic',
@@ -64,20 +83,29 @@ export default function RichTextEditor({
     'indent',
     'link',
     'align',
-  ];
+  ], []);
+
+  const handleChange = (content: string) => {
+    if (!isReady) return;
+    onChange(content);
+  };
+
+  if (!mounted || !isReady) {
+    return <div className="w-full h-[300px] bg-gray-50 border border-gray-200 rounded-lg animate-pulse" />;
+  }
 
   return (
     <div className="rich-text-editor">
-      {/* @ts-ignore - ReactQuill ref type issue */}
       <ReactQuill
         ref={quillRef}
         theme="snow"
-        value={value}
-        onChange={onChange}
+        value={safeValue}
+        onChange={handleChange}
         placeholder={placeholder}
         modules={modules}
         formats={formats}
         style={{ minHeight }}
+        preserveWhitespace
       />
       <style jsx global>{`
         .rich-text-editor .ql-container {

@@ -1,5 +1,45 @@
 # 국가 상세 정보 페이지 개선 사항
 
+## 최신 업데이트 (2026-01-27)
+
+### 국가 스토리텔링 라이브러리 참조 시스템
+
+라이브러리 객체를 재사용하는 참조 시스템을 구현했습니다. 이를 통해 콘텐츠를 한 번 작성하면 여러 곳에서 참조할 수 있으며, 라이브러리에서 수정 시 모든 참조 위치에 자동으로 반영됩니다.
+
+**구현된 컴포넌트**:
+- `LibrarySearchModal.tsx`: 라이브러리 검색 및 선택 모달
+- `CountryStorytellingSelector.tsx`: 국가 스토리텔링 섹션 메인 컴포넌트
+
+**주요 기능**:
+1. **Empty State**: 라이브러리 객체 미연결 시 표시, "라이브러리에서 검색" 버튼
+2. **Search Modal**: 국가명으로 필터링, 리스트 아이템 클릭으로 선택
+3. **Selected State**: 
+   - 선택된 객체 정보와 체크 아이콘 표시
+   - Read-only 프리뷰 박스 (배경색 #F8F9FA)
+   - "변경" 버튼으로 재선택 가능
+4. **자동 동기화 안내**: "Write Once, Use Everywhere" 개념 강조
+
+**데이터 구조**:
+```typescript
+interface LibraryObject {
+  id: string;
+  countryTag: string;
+  title: string;
+  subtitle?: string;
+  description: string;
+  updatedAt: any;
+}
+```
+
+**통합 위치**: 
+- [page.tsx](src/app/admin/content/countries/new/page.tsx#L855-L860): 통계 데이터 섹션 다음에 배치
+
+**서비스 업데이트**:
+- [contentLibraryService.ts](src/services/contentLibraryService.ts): `fetchLibraryStorytellingObjects()` 함수 추가
+- [countryDetailService.ts](src/services/countryDetailService.ts): `storytellingLibraryId` 필드 추가
+
+---
+
 ## 설치 필요한 패키지
 
 Rich Text Editor 및 HTML Sanitization 기능을 사용하기 위해 다음 패키지를 설치해야 합니다:
