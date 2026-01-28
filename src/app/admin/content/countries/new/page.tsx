@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Globe, Search, ExternalLink, Info, Check, Flag, ImagePlus, Upload, X, Heart, Share2, Bookmark, FileDown, Eye, BookOpen, Mountain, Scale, TrendingUp, Users, Zap, Phone, Plane, Wallet, Clock, MessageCircle, Power, Plug, DollarSign, Camera, Image, HelpCircle, ChevronDown, ChevronUp, GripVertical, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Globe, Search, ExternalLink, Info, Check, Flag, ImagePlus, Upload, X, Heart, Share2, Bookmark, FileDown, Eye, BookOpen, Mountain, Scale, TrendingUp, Users, Zap, Phone, Plane, Wallet, Clock, MessageCircle, Power, Plug, DollarSign, Camera, Image, HelpCircle, ChevronDown, ChevronUp, GripVertical, Plus, Trash2, Shield } from 'lucide-react';
 import ImageUploader from '@/components/admin/ImageUploader';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import CountryStorytellingSelector from '@/components/admin/content/CountryStorytellingSelector';
@@ -18,6 +18,7 @@ import LibrarySearchModal from '@/components/admin/content/LibrarySearchModal';
 import StatsManager from '@/components/common/StatsManager';
 import TabbedInfoEditor, { TabConfig } from '@/components/common/TabbedInfoEditor';
 import { contentLibraryAPI } from '@/services/contentLibraryService';
+import ScrollToTopButton from '@/components/common/ScrollToTopButton';
 import toast from 'react-hot-toast';
 import {
   DndContext,
@@ -233,6 +234,12 @@ export default function NewCountryDetailPage() {
     voltage: '',
     plugType: '',
     currency: '',
+  });
+
+  // 치안 및 안전 정보 state
+  const [safety, setSafety] = useState({
+    safetyLevel: 'safe' as 'safe' | 'moderate' | 'caution' | 'danger',
+    safetyTips: '',
   });
 
   // 라이브러리 참조 state
@@ -639,6 +646,8 @@ export default function NewCountryDetailPage() {
         practicalInfo: practicalInfo,
         // 실용 정보 라이브러리 참조
         practicalLibraryRefs: practicalLibraryRefs,
+        // 치안 및 안전 정보
+        safety: safety,
         // 미디어 아카이브
         mediaArchive: mediaArchive,
         // FAQ
@@ -1447,6 +1456,100 @@ export default function NewCountryDetailPage() {
                 </div>
               </div>
 
+              {/* 치안 및 안전 정보 섹션 */}
+              <div className="mt-6 bg-white rounded-xl p-6 border-2 border-emerald-200">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
+                      <Shield className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-zinc-900">1-7. 치안 및 안전 정보 (Safety)</h3>
+                      <p className="text-sm text-zinc-600">국가 전체의 안전 수준 및 실용 팁을 관리합니다</p>
+                    </div>
+                  </div>
+                  <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-emerald-300">
+                    <span className="text-xs font-semibold text-emerald-700">도시로 상속됨</span>
+                  </div>
+                </div>
+
+                {/* 안내 박스 */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-700">
+                      <p className="font-semibold mb-1">📌 Source of Truth</p>
+                      <p>
+                        여기에 입력된 정보는 소속된 모든 도시로 상속됩니다. 
+                        도시별로 다른 정보가 필요한 경우, 도시 등록 페이지에서 Override 할 수 있습니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 치안 수준 */}
+                <div className="mb-6">
+                  <label className="text-sm font-semibold text-zinc-700 mb-2 block">
+                    전반적 치안 수준 <span className="text-red-500">*</span>
+                  </label>
+                  <Select 
+                    value={safety.safetyLevel} 
+                    onValueChange={(value: 'safe' | 'moderate' | 'caution' | 'danger') => 
+                      setSafety({ ...safety, safetyLevel: value })
+                    }
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="safe">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-green-500 rounded-full" />
+                          <span>안전 (Safe)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="moderate">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-yellow-500 rounded-full" />
+                          <span>보통 (Moderate)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="caution">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-orange-500 rounded-full" />
+                          <span>주의 (Caution)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="danger">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full" />
+                          <span>위험 (Danger)</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-2">
+                    국가 전체의 평균적인 치안 수준을 선택하세요
+                  </p>
+                </div>
+
+                {/* 실용 팁 */}
+                <div>
+                  <label className="text-sm font-semibold text-zinc-700 mb-2 block">
+                    안전 관련 실용 팁 및 주의사항
+                  </label>
+                  <textarea
+                    value={safety.safetyTips}
+                    onChange={(e) => setSafety({ ...safety, safetyTips: e.target.value })}
+                    placeholder="예: 야간 외출 시 주의, 소매치기 주의, 특정 지역 피하기 등"
+                    className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    여행자들에게 도움이 될 안전 관련 조언을 입력하세요
+                  </p>
+                </div>
+              </div>
+
               {/* FAQ 섹션 */}
               <div className="mt-6 bg-white rounded-xl p-6 border-2 border-indigo-200">
                 <div className="flex items-center justify-between mb-6">
@@ -1455,7 +1558,7 @@ export default function NewCountryDetailPage() {
                       <HelpCircle className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-zinc-900">1-7. 자주 묻는 질문 (FAQ)</h3>
+                      <h3 className="text-xl font-bold text-zinc-900">1-8. 자주 묻는 질문 (FAQ)</h3>
                       <p className="text-sm text-zinc-600">사용자들이 자주 묻는 질문과 답변을 관리합니다</p>
                     </div>
                   </div>
@@ -1623,6 +1726,9 @@ export default function NewCountryDetailPage() {
           </Button>
         </div>
       </div>
+
+      {/* Scroll to Top Button */}
+      <ScrollToTopButton />
     </div>
   );
 }

@@ -54,6 +54,8 @@ export interface CityDetail {
     currency?: string;
     voltage?: string;
     language?: string;
+    safetyLevel?: string;
+    safetyTips?: string;
   };
   
   // Override flags (도시별 특화 정보 사용 여부)
@@ -62,6 +64,8 @@ export interface CityDetail {
     currency?: boolean;
     voltage?: boolean;
     language?: boolean;
+    safetyLevel?: boolean;
+    safetyTips?: boolean;
   };
   
   // Overridden values (override가 true일 때 사용)
@@ -70,6 +74,8 @@ export interface CityDetail {
     currency?: string;
     voltage?: string;
     language?: string;
+    safetyLevel?: 'safe' | 'moderate' | 'caution' | 'danger';
+    safetyTips?: string;
   };
   
   // Basic Info (도시 기본 정보)
@@ -85,6 +91,52 @@ export interface CityDetail {
     climate?: string[]; // 기후 관련 이미지 (최대 3장)
     society?: string[]; // 사회 관련 이미지 (최대 3장)
   };
+  
+  // Media Archive (미디어 아카이브)
+  mediaArchive?: string[]; // 도시 대표 이미지 모음 (최대 10장)
+  
+  // Storytelling Library Reference
+  storytellingLibraryId?: string | null; // 도시 스토리텔링 라이브러리 참조
+  
+  // Practical Info Library References
+  transportationLibraryId?: string | null; // 교통 정보 라이브러리 참조
+  financeLibraryId?: string | null; // 금융 정보 라이브러리 참조
+  emergencyLibraryId?: string | null; // 긴급 연락처 라이브러리 참조
+  
+  // Navigation Tabs
+  navigation?: {
+    flights?: { customUrl: string; isEnabled: boolean };
+    accommodations?: { customUrl: string; isEnabled: boolean };
+    tours?: { customUrl: string; isEnabled: boolean };
+    pickup?: { customUrl: string; isEnabled: boolean };
+    rental?: { customUrl: string; isEnabled: boolean };
+    dining?: { customUrl: string; isEnabled: boolean };
+    shopping?: { customUrl: string; isEnabled: boolean };
+    maps?: { customUrl: string; isEnabled: boolean };
+  };
+  
+  // Culture Specials
+  cultureSpecials?: {
+    id: string;
+    category: string;
+    title: string;
+    description: string;
+    productIds: string[];
+  }[];
+  
+  // Districts & Contents Mapping
+  districts?: {
+    id: string;
+    name: string;
+    description: string;
+    contents?: {
+      attractions?: string[];    // 명소/박물관 POI IDs
+      dining?: string[];         // 레스토랑/카페/바 POI IDs
+      shopping?: string[];       // 쇼핑 POI IDs
+      services?: string[];       // 라이프스타일 서비스 POI IDs
+      accommodation?: string[];  // 숙소 POI IDs
+    };
+  }[];
   
   createdAt?: any;
   updatedAt?: any;

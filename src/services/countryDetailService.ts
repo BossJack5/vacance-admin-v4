@@ -55,6 +55,12 @@ export interface CountryDetail {
     currency?: string;
   };
   
+  // 치안 및 안전 정보 (도시로 상속 가능)
+  safety?: {
+    safetyLevel?: 'safe' | 'moderate' | 'caution' | 'danger';
+    safetyTips?: string;
+  };
+  
   createdAt: any;
   updatedAt?: any;
 }

@@ -23,6 +23,7 @@ interface LibrarySearchModalProps {
   onClose: () => void;
   onSelect: (libraryObject: LibraryObject) => void;
   libraryObjects: LibraryObject[];
+  placeholder?: string;
 }
 
 export default function LibrarySearchModal({
@@ -30,6 +31,7 @@ export default function LibrarySearchModal({
   onClose,
   onSelect,
   libraryObjects = [],
+  placeholder = '국가명으로 검색...',
 }: LibrarySearchModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredObjects, setFilteredObjects] = useState<LibraryObject[]>([]);
@@ -87,7 +89,7 @@ export default function LibrarySearchModal({
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
-            placeholder="국가명으로 검색..."
+            placeholder={placeholder}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 h-12 bg-gray-50 border-gray-200"
