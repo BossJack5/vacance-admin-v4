@@ -1046,7 +1046,7 @@ export default function NewCountryDetailPage() {
                 </div>
               </div>
 
-              {/* 국가 스토리텔링 섹션 */}
+              {/* Section 7: 국가 스토리텔링 연동 */}
               <div className="mt-6">
                 <CountryStorytellingSelector
                   selectedLibraryId={selectedLibraryId}

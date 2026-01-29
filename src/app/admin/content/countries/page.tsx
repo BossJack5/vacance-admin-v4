@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
+import { Globe, Map, CheckCircle, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function CountriesPage() {
@@ -138,6 +139,12 @@ export default function CountriesPage() {
     return found ? found.label : continent || '-';
   };
 
+  // 통계 데이터
+  const totalCountries = filteredCountries.length;
+  const activeCountries = filteredCountries.filter(c => c.status === 'active').length;
+  const continentCount = Array.from(new Set(filteredCountries.map(c => c.continent))).length;
+  const totalCities = 0; // TODO: cities 컬렉션에서 가져와야 함
+
   return (
     <div className="p-8 space-y-6">
       {/* 상단 헤더 */}
@@ -154,6 +161,41 @@ export default function CountriesPage() {
         >
           + 새 국가 등록
         </Button>
+      </div>
+
+      {/* 통계 카드 */}
+      <div className="grid grid-cols-4 gap-6">
+        <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
+          <div className="flex items-center justify-between mb-2">
+            <Globe className="w-8 h-8 text-blue-600" />
+            <span className="text-2xl font-bold text-blue-900">{totalCountries}</span>
+          </div>
+          <p className="text-sm font-medium text-blue-700">전체 국가</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200">
+          <div className="flex items-center justify-between mb-2">
+            <CheckCircle className="w-8 h-8 text-green-600" />
+            <span className="text-2xl font-bold text-green-900">{activeCountries}</span>
+          </div>
+          <p className="text-sm font-medium text-green-700">활성 국가</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200">
+          <div className="flex items-center justify-between mb-2">
+            <Map className="w-8 h-8 text-purple-600" />
+            <span className="text-2xl font-bold text-purple-900">{continentCount}</span>
+          </div>
+          <p className="text-sm font-medium text-purple-700">대륙 수</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200">
+          <div className="flex items-center justify-between mb-2">
+            <Users className="w-8 h-8 text-orange-600" />
+            <span className="text-2xl font-bold text-orange-900">{totalCities}</span>
+          </div>
+          <p className="text-sm font-medium text-orange-700">연결된 총 도시 수</p>
+        </Card>
       </div>
 
       {/* 검색 및 필터 */}

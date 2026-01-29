@@ -7,10 +7,10 @@ import LibrarySearchModal from './LibrarySearchModal';
 
 interface LibraryObject {
   id: string;
-  countryTag: string;
+  countryTag?: string;
   title: string;
   subtitle?: string;
-  description: string;
+  description?: string;
   updatedAt: any;
 }
 
@@ -40,6 +40,7 @@ export default function CountryStorytellingSelector({
   }, [selectedLibraryId, libraryObjects]);
 
   const handleSelect = (obj: LibraryObject) => {
+    if (!obj.countryTag) return; // countryTag가 없으면 무시
     setSelectedObject(obj);
     onSelectLibrary(obj.id);
   };
@@ -50,16 +51,16 @@ export default function CountryStorytellingSelector({
 
   return (
     <>
-      <div className="border border-orange-200 bg-gradient-to-br from-orange-50/50 to-amber-50/30 rounded-xl p-6">
+      <div className="border-2 border-indigo-200 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 rounded-xl p-6 shadow-lg">
         {/* Section Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-md">
+            <Sparkles className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-orange-900">📖 1-3. 국가 스토리텔링</h3>
-            <p className="text-sm text-orange-700/80">
-              라이브러리에서 작성된 스토리텔링 콘텐츠를 참조합니다
+            <h3 className="text-xl font-bold text-indigo-900">7. 국가 스토리텔링 연동</h3>
+            <p className="text-sm text-indigo-700/80">
+              콘텐츠 라이브러리에서 작성된 국가 스토리텔링 객체를 연결하세요
             </p>
           </div>
         </div>
@@ -85,11 +86,11 @@ export default function CountryStorytellingSelector({
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-white">
             <Library className="w-12 h-12 mx-auto mb-4 text-gray-400" />
             <p className="text-gray-600 font-medium mb-4">
-              아직 라이브러리 객체가 연결되지 않았습니다
+              아직 스토리텔링 객체가 연결되지 않았습니다
             </p>
             <Button
               onClick={handleOpenModal}
-              className="bg-orange-600 hover:bg-orange-700 text-white"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
             >
               <Library className="w-4 h-4 mr-2" />
               라이브러리에서 검색

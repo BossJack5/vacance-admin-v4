@@ -154,7 +154,11 @@ export default function CitiesPage() {
   // 구역 수와 POI 수는 임시로 랜덤 값 사용 (실제로는 관련 컬렉션에서 가져와야 함)
   const getRegionCount = () => Math.floor(Math.random() * 20) + 1;
   const getPoiCount = () => Math.floor(Math.random() * 100) + 10;
-
+  // 통계 데이터
+  const totalCities = filteredCities.length;
+  const safeCities = filteredCities.filter(c => c.status === 'published').length; // TODO: securityGrade 필드 추가 필요
+  const guidebookComplete = filteredCities.filter(c => c.status === 'published').length;
+  const totalPois = 0; // TODO: POI 컴렉션에서 가져와야 함
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
@@ -191,6 +195,41 @@ export default function CitiesPage() {
             <Plus className="w-5 h-5" />
             새 도시 등록
           </Button>
+        </div>
+
+        {/* 통계 카드 */}
+        <div className="grid grid-cols-4 gap-6 mb-8">
+          <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
+            <div className="flex items-center justify-between mb-2">
+              <Building2 className="w-8 h-8 text-blue-600" />
+              <span className="text-2xl font-bold text-blue-900">{totalCities}</span>
+            </div>
+            <p className="text-sm font-medium text-blue-700">전체 도시</p>
+          </Card>
+
+          <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200">
+            <div className="flex items-center justify-between mb-2">
+              <Flag className="w-8 h-8 text-green-600" />
+              <span className="text-2xl font-bold text-green-900">{safeCities}</span>
+            </div>
+            <p className="text-sm font-medium text-green-700">치안 '안전' 도시</p>
+          </Card>
+
+          <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200">
+            <div className="flex items-center justify-between mb-2">
+              <Star className="w-8 h-8 text-purple-600 fill-purple-600" />
+              <span className="text-2xl font-bold text-purple-900">{guidebookComplete}</span>
+            </div>
+            <p className="text-sm font-medium text-purple-700">가이드북 조립 완료</p>
+          </Card>
+
+          <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200">
+            <div className="flex items-center justify-between mb-2">
+              <MapPin className="w-8 h-8 text-orange-600" />
+              <span className="text-2xl font-bold text-orange-900">{totalPois}</span>
+            </div>
+            <p className="text-sm font-medium text-orange-700">전체 명소 수</p>
+          </Card>
         </div>
 
         {/* Search and Filter Section */}

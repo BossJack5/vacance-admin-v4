@@ -16,6 +16,7 @@ import CityMasterSearchModal from '@/components/admin/content/CityMasterSearchMo
 import CityStorytellingSelector from '@/components/admin/content/CityStorytellingSelector';
 import PoiSearchModal from '@/components/admin/content/PoiSearchModal';
 import BulkContentSearchModal from '@/components/admin/content/BulkContentSearchModal';
+import LibrarySearchModal from '@/components/admin/content/LibrarySearchModal';
 import CategoryAccordionLinker from '@/components/admin/content/CategoryAccordionLinker';
 import MasterSearchSelect from '@/components/common/MasterSearchSelect';
 import InheritanceCard from '@/components/common/InheritanceCard';
@@ -126,12 +127,15 @@ export default function NewCityDetailPage() {
 
   // 14. Transportation Library Reference
   const [transportationLibraryId, setTransportationLibraryId] = useState<string | null>(null);
+  const [isTransportLibraryModalOpen, setIsTransportLibraryModalOpen] = useState(false);
 
   // 15. Finance Library Reference
   const [financeLibraryId, setFinanceLibraryId] = useState<string | null>(null);
+  const [isFinanceLibraryModalOpen, setIsFinanceLibraryModalOpen] = useState(false);
 
   // 16. Emergency Library Reference
   const [emergencyLibraryId, setEmergencyLibraryId] = useState<string | null>(null);
+  const [isEmergencyLibraryModalOpen, setIsEmergencyLibraryModalOpen] = useState(false);
 
   // 17. Navigation Tabs
   const [navigationTabs, setNavigationTabs] = useState({
@@ -989,6 +993,192 @@ export default function NewCityDetailPage() {
               </p>
             </div>
           )}
+        </Card>
+
+        {/* Section 8-2: Practical Info Library References */}
+        <Card className="p-8 shadow-lg border-green-200">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+              <Plane className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">8-2. 실용 정보 라이브러리 연결</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                교통, 금융, 긴급연락처 정보를 라이브러리에서 연결합니다
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {/* 교통 정보 */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Plane className="w-5 h-5 text-blue-600" />
+                <h3 className="font-bold text-gray-800">교통 정보</h3>
+                {transportationLibraryId && (
+                  <span className="px-2 py-1 text-xs font-bold bg-green-100 text-green-700 rounded-full">
+                    ✓ 연결됨
+                  </span>
+                )}
+              </div>
+              <LibrarySearchModal
+                isOpen={isTransportLibraryModalOpen}
+                onClose={() => setIsTransportLibraryModalOpen(false)}
+                onSelect={(obj) => {
+                  setTransportationLibraryId(obj.id);
+                  toast.success('교통 정보가 연결되었습니다.');
+                }}
+                libraryObjects={(libraryObjects || []).filter((obj: any) => obj.type === 'practical-transport')}
+                placeholder="교통 정보 검색..."
+              />
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  onClick={() => setIsTransportLibraryModalOpen(true)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  라이브러리에서 검색
+                </Button>
+                {transportationLibraryId && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setTransportationLibraryId('');
+                      toast.success('교통 정보 연결이 해제되었습니다.');
+                    }}
+                    variant="outline"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    연결 해제
+                  </Button>
+                )}
+              </div>
+              {transportationLibraryId && (
+                <p className="text-xs text-green-600 mt-2">
+                  ID: {transportationLibraryId}
+                </p>
+              )}
+            </div>
+
+            {/* 금융 정보 */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <DollarSign className="w-5 h-5 text-yellow-600" />
+                <h3 className="font-bold text-gray-800">금융 정보</h3>
+                {financeLibraryId && (
+                  <span className="px-2 py-1 text-xs font-bold bg-green-100 text-green-700 rounded-full">
+                    ✓ 연결됨
+                  </span>
+                )}
+              </div>
+              <LibrarySearchModal
+                isOpen={isFinanceLibraryModalOpen}
+                onClose={() => setIsFinanceLibraryModalOpen(false)}
+                onSelect={(obj) => {
+                  setFinanceLibraryId(obj.id);
+                  toast.success('금융 정보가 연결되었습니다.');
+                }}
+                libraryObjects={(libraryObjects || []).filter((obj: any) => obj.type === 'practical-finance')}
+                placeholder="금융 정보 검색..."
+              />
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  onClick={() => setIsFinanceLibraryModalOpen(true)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  라이브러리에서 검색
+                </Button>
+                {financeLibraryId && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setFinanceLibraryId('');
+                      toast.success('금융 정보 연결이 해제되었습니다.');
+                    }}
+                    variant="outline"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    연결 해제
+                  </Button>
+                )}
+              </div>
+              {financeLibraryId && (
+                <p className="text-xs text-green-600 mt-2">
+                  ID: {financeLibraryId}
+                </p>
+              )}
+            </div>
+
+            {/* 긴급연락처 */}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Phone className="w-5 h-5 text-red-600" />
+                <h3 className="font-bold text-gray-800">긴급연락처</h3>
+                {emergencyLibraryId && (
+                  <span className="px-2 py-1 text-xs font-bold bg-green-100 text-green-700 rounded-full">
+                    ✓ 연결됨
+                  </span>
+                )}
+              </div>
+              <LibrarySearchModal
+                isOpen={isEmergencyLibraryModalOpen}
+                onClose={() => setIsEmergencyLibraryModalOpen(false)}
+                onSelect={(obj) => {
+                  setEmergencyLibraryId(obj.id);
+                  toast.success('긴급연락처가 연결되었습니다.');
+                }}
+                libraryObjects={(libraryObjects || []).filter((obj: any) => obj.type === 'practical-emergency')}
+                placeholder="긴급연락처 검색..."
+              />
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  onClick={() => setIsEmergencyLibraryModalOpen(true)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  라이브러리에서 검색
+                </Button>
+                {emergencyLibraryId && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setEmergencyLibraryId('');
+                      toast.success('긴급연락처 연결이 해제되었습니다.');
+                    }}
+                    variant="outline"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    연결 해제
+                  </Button>
+                )}
+              </div>
+              {emergencyLibraryId && (
+                <p className="text-xs text-green-600 mt-2">
+                  ID: {emergencyLibraryId}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700 mt-6">
+            <p>
+              💡 <strong>실용 정보 라이브러리 연결이란?</strong>
+            </p>
+            <p className="mt-1">
+              콘텐츠 라이브러리에서 이미 작성된 교통/금융/긴급연락처 정보를 검색하여 연결합니다.
+              가이드북 조립 시 자동으로 해당 정보가 포함됩니다.
+            </p>
+          </div>
         </Card>
 
         {/* Section 9: Culture Specials */}

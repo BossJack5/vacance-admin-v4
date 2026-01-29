@@ -8,7 +8,8 @@ import toast from 'react-hot-toast';
 import { 
   ChevronDown, LayoutDashboard, BookOpen, ShoppingCart, MapPin, 
   Megaphone, UserCog, MessageSquare, Bell, Users, Settings, LogOut,
-  Compass, Target, Filter, Link2, TrendingUp, ShieldCheck
+  Compass, Target, Filter, Link2, TrendingUp, ShieldCheck, Map, Globe,
+  Book, Landmark, Library, Building2, Palette, UtensilsCrossed, ShoppingBag, Sparkles, FlagTriangleRight, Newspaper, Star
 } from 'lucide-react';
 import { useAuthorization } from '@/hooks/useAuthorization';
 
@@ -37,7 +38,27 @@ const ALL_MENUS: MenuItem[] = [
       { id: 'trend', name: '트렌드 예측', path: '#', icon: TrendingUp },
     ],
   },
-  { id: 'content', name: '콘텐츠 관리', path: '/admin/content-library', icon: BookOpen },
+  {
+    id: 'content',
+    name: '콘텐츠 관리',
+    path: '#',
+    icon: BookOpen,
+    submenu: [
+      { id: 'countries', name: '국가 관리', path: '/admin/content/countries', icon: Globe },
+      { id: 'cities', name: '도시 관리', path: '/admin/content/cities', icon: Map },
+      { id: 'landmarks', name: '명소/관광지', path: '/admin/content/landmarks', icon: Landmark },
+      { id: 'museums', name: '박물관/미술관', path: '/admin/content/museums', icon: Building2 },
+      { id: 'museum_artworks', name: '박물관 작품 관리', path: '/admin/content/museum-artworks', icon: Palette },
+      { id: 'restaurants', name: '레스토랑/카페', path: '/admin/content/restaurants', icon: UtensilsCrossed },
+      { id: 'shopping', name: '쇼핑', path: '/admin/content/shopping', icon: ShoppingBag },
+      { id: 'services', name: '서비스(살롱/스파)', path: '/admin/content/services', icon: Sparkles },
+      { id: 'golf', name: '골프장', path: '/admin/content/golf-courses', icon: FlagTriangleRight },
+      { id: 'cultural_specials', name: '문화 스페셜', path: '/admin/content/culture', icon: Star },
+      { id: 'jeudi_magazine', name: '쥬디 매거진', path: '/admin/content/jeudi-magazine', icon: Newspaper },
+      { id: 'guidebooks', name: '가이드북', path: '/admin/content/guidebooks', icon: Book },
+      { id: 'library', name: '콘텐츠 라이브러리', path: '/admin/content/library', icon: Library },
+    ],
+  },
   { id: 'commerce', name: '커머스 관리', path: '/admin/hotels', icon: ShoppingCart },
   { id: 'location', name: '위치 관리', path: '/admin/locations', icon: MapPin },
   { id: 'ads', name: '광고 관리', path: '#', icon: Megaphone },
@@ -56,7 +77,7 @@ const AdminSidebar = () => {
 
   // [CTO Alex] 권한에 따라 필터링된 메뉴
   const visibleMenus = ALL_MENUS.map(item => {
-    if (item.id === 'dashboard' && item.submenu) {
+    if (item.submenu) {
       const visibleSubmenu = item.submenu.filter(sub => canView(sub.id));
       return visibleSubmenu.length > 0 ? { ...item, submenu: visibleSubmenu } : null;
     }
