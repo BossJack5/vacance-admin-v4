@@ -20,7 +20,8 @@ import {
   CheckCircle,
   Building2,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { db } from '@/lib/firebase';
