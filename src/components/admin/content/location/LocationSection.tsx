@@ -63,8 +63,8 @@ export default function LocationSection({
             </SelectTrigger>
             <SelectContent>
               {countries.map(country => (
-                <SelectItem key={country.countryCode} value={country.countryCode}>
-                  {country.countryName}
+                <SelectItem key={country.id} value={country.id}>
+                  {country.nameKr}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -86,8 +86,8 @@ export default function LocationSection({
             </SelectTrigger>
             <SelectContent>
               {filteredCities.map(city => (
-                <SelectItem key={city.cityCode} value={city.cityCode}>
-                  {city.cityName}
+                <SelectItem key={city.id} value={city.id}>
+                  {city.nameKr}
                 </SelectItem>
               ))}
             </SelectContent>
