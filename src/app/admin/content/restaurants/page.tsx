@@ -13,52 +13,32 @@ import {
   Edit, 
   Trash2, 
   Plus,
-  Download,
-  Upload,
-  Star,
-  CheckCircle,
-  TrendingUp,
-  Award
+  Star
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 
 interface Restaurant {
   id: string;
   nameKr: string;
-  nameEn: string;
-  cityCode: string;
-  cityName?: string;
-  cuisineType: string; // 음식 종류
-  michelinStars?: number; // 미슐랭 별 (0~3)
-  priceLevel: number; // 가격대 (1~4, €~€€€€)
-  rating: number; // 평균 평점 (1~5)
-  reviewCount?: number;
-  reservationRequired: boolean; // 예약 필수 여부
+  nameEn?: string;
+  countryId: string;
+  cityId: string;
+  category: 'restaurant' | 'cafe' | 'bar';
+  michelinStars?: number;
+  priceLevel: number;
+  reservation?: {
+    enabled: boolean;
+  };
   status: 'active' | 'inactive' | 'pending';
   createdAt?: any;
 }
 
-// 음식 종류 배지 색상 (주황색 계열)
-const cuisineColors: Record<string, string> = {
-  '프렌치 파인다이닝': 'bg-orange-100 text-orange-700 border-orange-200',
-  '이탈리안': 'bg-red-100 text-red-700 border-red-200',
-  '일식': 'bg-rose-100 text-rose-700 border-rose-200',
-  '중식': 'bg-amber-100 text-amber-700 border-amber-200',
-  '한식': 'bg-orange-100 text-orange-700 border-orange-200',
-  '스페니쉬': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  '지중해': 'bg-blue-100 text-blue-700 border-blue-200',
-  '카페': 'bg-brown-100 text-brown-700 border-brown-200',
-  '베이커리': 'bg-amber-100 text-amber-700 border-amber-200',
-  '비스트로': 'bg-orange-100 text-orange-700 border-orange-200',
-};
-
-// 상태 색상
-const statusColors: Record<string, string> = {
-  active: 'bg-green-100 text-green-700',
-  inactive: 'bg-gray-100 text-gray-700',
-  pending: 'bg-yellow-100 text-yellow-700',
+const categoryLabels: Record<string, string> = {
+  'restaurant': '레스토랑',
+  'cafe': '카페',
+  'bar': '바',
 };
 
 const statusLabels: Record<string, string> = {
@@ -72,23 +52,8 @@ export default function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>([]);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [selectedCity, setSelectedCity] = useState<string>('all');
-  const [selectedCuisine, setSelectedCuisine] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
-
-  // 통계 데이터
-  const totalRestaurants = filteredRestaurants.length;
-  const totalMichelinStars = filteredRestaurants.reduce((sum, r) => sum + (r.michelinStars || 0), 0);
-  const reservationRequired = filteredRestaurants.filter(r => r.reservationRequired).length;
-  const avgRating = filteredRestaurants.length > 0
-    ? (filteredRestaurants.reduce((sum, r) => sum + r.rating, 0) / filteredRestaurants.length).toFixed(1)
-    : '0.0';
-
-  // 유니크한 도시 목록
-  const cities = Array.from(new Set(restaurants.map(r => r.cityName || r.cityCode))).sort();
-  
-  // 유니크한 음식 종류 목록
-  const cuisineTypes = Array.from(new Set(restaurants.map(r => r.cuisineType))).sort();
 
   useEffect(() => {
     loadRestaurants();
@@ -96,24 +61,51 @@ export default function RestaurantsPage() {
 
   useEffect(() => {
     filterRestaurants();
-  }, [restaurants, searchKeyword, selectedCity, selectedCuisine]);
+  }, [restaurants, searchKeyword, selectedCategory]);
 
   const loadRestaurants = async () => {
     try {
       setLoading(true);
-      const restaurantsRef = collection(db, 'restaurants');
-      const q = query(restaurantsRef, orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocs(collection(db, 'restaurants'));
       
-      const data: Restaurant[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Restaurant[];
+      const data: Restaurant[] = snapshot.docs.map((doc) => {
+        const rawData = doc.data();
+        
+        // category 필드가 없으면 name_kr에서 추측
+        let category: 'restaurant' | 'cafe' | 'bar' = 'restaurant';
+        if (rawData.category) {
+          category = rawData.category;
+        } else if (rawData.name_kr) {
+          const nameLower = rawData.name_kr.toLowerCase();
+          if (nameLower.includes('카페') || nameLower.includes('cafe')) {
+            category = 'cafe';
+          } else if (nameLower.includes('바') || nameLower.includes('bar')) {
+            category = 'bar';
+          }
+        }
+        
+        return {
+          id: doc.id,
+          nameKr: rawData.name_kr || rawData.nameKr || '',
+          nameEn: rawData.name_en || rawData.nameEn || '',
+          countryId: rawData.countryId || '',
+          cityId: rawData.cityId || '',
+          category: category,
+          michelinStars: rawData.michelinStars || 0,
+          priceLevel: rawData.priceLevel || rawData.price_level || 1,
+          reservation: rawData.reservation || { enabled: false },
+          status: rawData.status || 'active',
+          createdAt: rawData.createdAt
+        };
+      });
       
       setRestaurants(data);
-      console.log('[레스토랑 목록] 로드됨:', data.length, '개');
+      console.log('✅ [레스토랑 목록] 로드됨:', data.length, '개');
+      if (data.length > 0) {
+        console.log('📊 [변환된 첫 번째 레스토랑]', data[0]);
+      }
     } catch (error) {
-      console.error('레스토랑 로딩 실패:', error);
+      console.error('❌ [레스토랑 로딩 실패]', error);
       toast.error('레스토랑 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
@@ -123,25 +115,17 @@ export default function RestaurantsPage() {
   const filterRestaurants = () => {
     let filtered = [...restaurants];
 
-    // 키워드 검색
     if (searchKeyword.trim()) {
       const keyword = searchKeyword.toLowerCase();
-      filtered = filtered.filter(
-        (r) =>
-          r.nameKr.toLowerCase().includes(keyword) ||
-          r.nameEn.toLowerCase().includes(keyword) ||
-          r.cityCode.toLowerCase().includes(keyword)
-      );
+      filtered = filtered.filter((r) => {
+        const nameKr = r.nameKr || '';
+        const nameEn = r.nameEn || '';
+        return nameKr.toLowerCase().includes(keyword) || nameEn.toLowerCase().includes(keyword);
+      });
     }
 
-    // 도시 필터
-    if (selectedCity !== 'all') {
-      filtered = filtered.filter((r) => (r.cityName || r.cityCode) === selectedCity);
-    }
-
-    // 음식 종류 필터
-    if (selectedCuisine !== 'all') {
-      filtered = filtered.filter((r) => r.cuisineType === selectedCuisine);
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter((r) => r.category === selectedCategory);
     }
 
     setFilteredRestaurants(filtered);
@@ -159,37 +143,6 @@ export default function RestaurantsPage() {
     }
   };
 
-  const handleExport = () => {
-    toast('내보내기 기능은 준비 중입니다.');
-  };
-
-  const handleBulkUpload = () => {
-    toast('일괄 업로드 기능은 준비 중입니다.');
-  };
-
-  // 미슐랭 별 렌더링 (0~3개)
-  const renderMichelinStars = (stars?: number) => {
-    if (!stars || stars === 0) {
-      return <span className="text-gray-400 text-sm">-</span>;
-    }
-    return (
-      <div className="flex items-center gap-0.5">
-        {[...Array(stars)].map((_, index) => (
-          <Star
-            key={index}
-            className="w-4 h-4 text-yellow-500 fill-yellow-500"
-          />
-        ))}
-      </div>
-    );
-  };
-
-  // 가격대 렌더링 (€~€€€€)
-  const renderPriceLevel = (level: number) => {
-    const symbol = '€'.repeat(level);
-    return <span className="font-semibold text-gray-700">{symbol}</span>;
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-white p-8">
       <div className="max-w-7xl mx-auto">
@@ -197,212 +150,117 @@ export default function RestaurantsPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">레스토랑/카페 관리</h1>
-            <p className="text-gray-600 mt-1">레스토랑 정보와 메뉴, 예약 시스템을 관리합니다</p>
+            <p className="text-gray-600 mt-1">레스토랑 정보를 관리합니다</p>
           </div>
           <Button
             onClick={() => router.push('/admin/content/restaurants/new')}
             className="bg-orange-600 hover:bg-orange-700"
           >
-            <Plus className="w-5 h-5 mr-2" />
+            <Plus className="w-4 h-4 mr-2" />
             새 레스토랑 등록
           </Button>
         </div>
 
-        {/* 통계 카드 - 4개 */}
-        <div className="grid grid-cols-4 gap-6 mb-8">
-          {/* 전체 레스토랑 */}
-          <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
-            <div className="flex items-center justify-between mb-2">
-              <UtensilsCrossed className="w-8 h-8 text-blue-600" />
-              <span className="text-2xl font-bold text-blue-900">{totalRestaurants}</span>
-            </div>
-            <p className="text-sm font-medium text-blue-700">전체 레스토랑</p>
-          </Card>
-
-          {/* 미슐랭 스타 (Orange) */}
-          <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200">
-            <div className="flex items-center justify-between mb-2">
-              <Award className="w-8 h-8 text-orange-600" />
-              <span className="text-2xl font-bold text-orange-900">{totalMichelinStars}</span>
-            </div>
-            <p className="text-sm font-medium text-orange-700">미슐랭 스타</p>
-          </Card>
-
-          {/* 예약 필수 (Blue) */}
-          <Card className="p-6 bg-gradient-to-br from-indigo-50 to-indigo-100 border-2 border-indigo-200">
-            <div className="flex items-center justify-between mb-2">
-              <CheckCircle className="w-8 h-8 text-indigo-600" />
-              <span className="text-2xl font-bold text-indigo-900">{reservationRequired}</span>
-            </div>
-            <p className="text-sm font-medium text-indigo-700">예약 필수</p>
-          </Card>
-
-          {/* 평균 평점 (Yellow) */}
-          <Card className="p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-200">
-            <div className="flex items-center justify-between mb-2">
-              <Star className="w-8 h-8 text-yellow-600" />
-              <span className="text-2xl font-bold text-yellow-900">{avgRating}</span>
-            </div>
-            <p className="text-sm font-medium text-yellow-700">평균 평점</p>
-          </Card>
-        </div>
-
-        {/* 필터 섹션 */}
+        {/* 검색 및 필터 */}
         <Card className="p-6 mb-6">
-          <div className="space-y-4">
-            {/* 첫 번째 줄: 검색 및 필터 */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  placeholder="레스토랑 이름 검색..."
-                  className="pl-10"
-                />
-              </div>
-
-              <Select value={selectedCity} onValueChange={setSelectedCity}>
-                <SelectTrigger>
-                  <SelectValue placeholder="전체 도시" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체 도시</SelectItem>
-                  {cities.map((city) => (
-                    <SelectItem key={city} value={city}>
-                      {city}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
-                <SelectTrigger>
-                  <SelectValue placeholder="전체 음식 종류" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체 음식 종류</SelectItem>
-                  {cuisineTypes.map((cuisine) => (
-                    <SelectItem key={cuisine} value={cuisine}>
-                      {cuisine}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <Input
+                placeholder="레스토랑명으로 검색..."
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                className="w-full"
+              />
             </div>
-
-            {/* 두 번째 줄: 액션 버튼 */}
-            <div className="flex gap-3">
-              <Button
-                onClick={handleExport}
-                variant="outline"
-                className="text-green-600 border-green-600 hover:bg-green-50"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                내보내기
-              </Button>
-              <Button
-                onClick={handleBulkUpload}
-                variant="outline"
-                className="text-orange-600 border-orange-600 hover:bg-orange-50"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                일괄 업로드
-              </Button>
-            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="업종 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체 업종</SelectItem>
+                <SelectItem value="restaurant">레스토랑</SelectItem>
+                <SelectItem value="cafe">카페</SelectItem>
+                <SelectItem value="bar">바</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </Card>
 
-        {/* 레스토랑 목록 테이블 */}
+        {/* 테이블 */}
         <Card className="overflow-hidden">
           {loading ? (
             <div className="p-12 text-center">
-              <p className="text-gray-500">로딩 중...</p>
+              <UtensilsCrossed className="w-12 h-12 text-gray-400 mx-auto mb-4 animate-pulse" />
+              <p className="text-gray-500">레스토랑 목록을 불러오는 중...</p>
             </div>
           ) : filteredRestaurants.length === 0 ? (
             <div className="p-12 text-center">
-              <UtensilsCrossed className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <p className="text-gray-500">레스토랑이 없습니다.</p>
-              <Button
-                onClick={() => router.push('/admin/content/restaurants/new')}
-                className="mt-4"
-                variant="outline"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                첫 번째 레스토랑 등록하기
-              </Button>
+              <UtensilsCrossed className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">등록된 레스토랑이 없습니다.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-orange-50 to-red-50 border-b-2 border-orange-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      레스토랑명
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      도시
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      음식 종류
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      미슐랭
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      가격대
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      평점
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      작업
-                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">레스토랑명</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">도시</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">업종</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">미슐랭</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">가격대</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">예약</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">상태</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase">작업</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredRestaurants.map((restaurant) => (
                     <tr key={restaurant.id} className="hover:bg-orange-50/30 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-xs font-mono text-gray-500">
-                          {restaurant.id.substring(0, 8)}
-                        </span>
-                      </td>
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-semibold text-gray-900">{restaurant.nameKr}</p>
-                          <p className="text-sm text-gray-500">{restaurant.nameEn}</p>
+                          <p className="font-semibold text-gray-900">{restaurant.nameKr || '(이름 없음)'}</p>
+                          {restaurant.nameEn && (
+                            <p className="text-sm text-gray-500">{restaurant.nameEn}</p>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-700">
-                          {restaurant.cityName || restaurant.cityCode}
+                        <span className="text-sm text-gray-700">{restaurant.cityId}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                          {categoryLabels[restaurant.category] || restaurant.category}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                            cuisineColors[restaurant.cuisineType] || 'bg-orange-100 text-orange-700 border-orange-200'
-                          }`}
-                        >
-                          {restaurant.cuisineType}
+                        {restaurant.michelinStars && restaurant.michelinStars > 0 ? (
+                          <div className="flex items-center gap-0.5">
+                            {[...Array(restaurant.michelinStars)].map((_, i) => (
+                              <Star key={i} className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="font-semibold text-gray-700">
+                          {restaurant.priceLevel ? '€'.repeat(restaurant.priceLevel) : '-'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {renderMichelinStars(restaurant.michelinStars)}
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          restaurant.reservation?.enabled 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {restaurant.reservation?.enabled ? '사용' : '미사용'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {renderPriceLevel(restaurant.priceLevel)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                          <span className="font-semibold text-gray-900">{restaurant.rating.toFixed(1)}</span>
-                          <span className="text-xs text-gray-500">({restaurant.reviewCount || 0})</span>
-                        </div>
+                        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                          {statusLabels[restaurant.status] || restaurant.status}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">

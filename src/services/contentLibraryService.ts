@@ -118,8 +118,8 @@ export const contentLibraryAPI = {
     );
     const snapshot = await getDocs(q);
     const objects = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(obj => obj.type === 'country-story') as ContentObject[];
+      .map(doc => ({ id: doc.id, ...doc.data() } as ContentObject))
+      .filter(obj => obj.type === 'country-story');
     return objects;
   }
 };
